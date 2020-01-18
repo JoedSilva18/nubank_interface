@@ -1,97 +1,102 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Animated } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import GestureRecognizer, { swipeDirections } from 'react-native-swipe-gestures';
 import Header from '~/components/Header';
 import Tabs from '~/components/Tabs';
 import Menu from '~/components/Menu';
+import CardMoney from '~/components/CardMoney';
 import {
   Container,
   Content,
-  Card,
-  CardHeader,
-  CardContent,
-  Title,
-  Description,
-  CardFooter,
-  Annotation
+  CardContainer,
 } from './styles';
 
 export default function Main() {
-  let offset = 0;
+  let offsetY = 0;
+  const contentX = new Animated.Value(300);
   const translateY = new Animated.Value(0);
 
-  const animatedEvent = Animated.event(
+  const animatedEventY = Animated.event(
     [
       {
         nativeEvent: {
           translationY: translateY
         }
       }
-    ],
-    { useNativeDriver: true }
+    ]
   );
 
-  function onHandlerStateChange(event) {
+  useEffect(() => {
+    function animate() {
+      Animated.parallel([
+        Animated.spring(contentX, {
+          toValue: 0,
+          bounciness: 15
+        })
+      ]).start()
+    }
+
+    animate()
+  }, [contentX]);
+
+  function onHandlerStateChangeY(event) {
+
     if (event.nativeEvent.oldState === State.ACTIVE) {
-      let opened = false;
       const { translationY } = event.nativeEvent;
 
-      offset += translationY;
+      let opened = false;
+
+      offsetY += translationY;
 
       if (translationY >= 100) {
         opened = true;
       } else {
-        translateY.setValue(offset);
+        translateY.setValue(offsetY);
         translateY.setOffset(0);
-        offset = 0;
+        offsetY = 0;
       }
 
       Animated.timing(translateY, {
-        toValue: opened ? 380 : 0,
+        toValue: opened ? 480 : 0,
         duration: 100,
         useNativeDriver: true
       }).start(() => {
-        offset = opened ? 380 : 0;
-        translateY.setOffset(offset);
+        offsetY = opened ? 480 : 0;
+        translateY.setOffset(offsetY);
         translateY.setValue(0);
       })
+
     }
   }
 
   return (
     <Container>
       <Header />
-      <Content>
+      <Content style={{
+        transform: [
+          {
+            translateX: contentX
+          }
+        ]
+      }}>
         <Menu translateY={translateY} />
 
         <PanGestureHandler
-          onGestureEvent={animatedEvent}
-          onHandlerStateChange={onHandlerStateChange}
+          onGestureEvent={animatedEventY}
+          onHandlerStateChange={onHandlerStateChangeY}
         >
-          <Card style={{
+          <CardContainer style={{
             transform: [{
               translateY: translateY.interpolate({
-                inputRange: [-200, 0, 380],
-                outputRange: [-50, 0, 380],
+                inputRange: [-200, 0, 480],
+                outputRange: [-50, 0, 480],
                 extrapolate: 'clamp'
-              })
+              }),
             }]
           }}>
-            <CardHeader>
-              <Icon name="attach-money" size={28} color="#666" />
-              <Icon name="visibility-off" size={28} color="#666" />
-            </CardHeader>
-            <CardContent>
-              <Title>Saldo disponivel</Title>
-              <Description>R$ 197.611,65</Description>
-            </CardContent>
-            <CardFooter>
-              <Annotation>
-                Transferência de R$ 20,00 recebida de Joed Silva as 06:00h
-            </Annotation>
-            </CardFooter>
-          </Card>
+            < CardMoney />
+          </CardContainer>
         </PanGestureHandler>
       </Content>
       <Tabs translateY={translateY} />
