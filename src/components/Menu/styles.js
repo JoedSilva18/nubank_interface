@@ -32,7 +32,7 @@ export const NavText = styled.Text`
 `;
 
 export const SignOutButton = styled.TouchableOpacity`
-  border-width: ${StyleSheet.hairlineWidth}px;
+  border-width: 1px;
   border-color: rgba(255, 255, 255, 0.8);
   border-radius: 4px;
   justify-content: center;
